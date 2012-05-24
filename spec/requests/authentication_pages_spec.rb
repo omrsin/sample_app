@@ -43,6 +43,8 @@ describe "AuthenticationPages" do
       describe "followed by signout" do
       	before { click_link "Sign out" }
       	it { should have_link('Sign in') }
+      	it { should_not have_link('Profile', href: user_path(user)) }
+      	it { should_not have_link('Settings', href: edit_user_path(user)) }
       end      
   	end
   end
@@ -61,6 +63,16 @@ describe "AuthenticationPages" do
   		end
   	end
   	
+  	describe "as admin user" do
+  		let(:user) { FactoryGirl.create(:admin) }
+  		before { sign_in user }
+  		
+  		describe "submitting a DELETE request to the User#destroy action of hmiself" do
+  			before { delete user_path(user) }
+  			specify { response.should redirect_to(root_path) }
+  		end
+  	end
+  	
   	describe "for non-signed-in users" do
   		let(:user) { FactoryGirl.create(:user) }
   		
@@ -72,7 +84,7 @@ describe "AuthenticationPages" do
   				click_button "Sign in"
   			end
   			
-  			describe "adter signing in" do
+  			describe "after signing in" do
   				it "should render the desired protected page" do
   					page.should have_selector('title', text: 'Edit user')
   				end
@@ -110,6 +122,21 @@ describe "AuthenticationPages" do
   		
   		describe "submitting a PUT request to the Users#update action" do
   			before { put user_path(wrong_user) }
+  			specify { response.should redirect_to(root_path) }
+  		end
+  	end
+  	
+  	describe "as signed in user" do
+  		let(:user) { FactoryGirl.create(:user) }
+  		before { sign_in user }
+  		
+  		describe "submitting to the new action" do
+  			before { get new_user_path }
+  			specify { response.should redirect_to(root_path) }
+  		end
+  		
+  		describe "submitting to the create action" do
+  			before { post users_path }
   			specify { response.should redirect_to(root_path) }
   		end
   	end
